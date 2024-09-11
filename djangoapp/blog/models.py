@@ -7,9 +7,9 @@ from django.urls import reverse
 
 class PostAttachment(AbstractAttachment):
     def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify_new(self.name, 4)
-        
+        if not self.name:
+            self.name = self.file.name
+
         current_file_name = str(self.file.name)
         super_save = super().save(*args, **kwargs)
         file_changed = False
