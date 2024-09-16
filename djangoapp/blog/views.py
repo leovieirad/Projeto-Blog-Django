@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.contrib.auth.models import User
 from django.http import Http404
-from django.views.generic import ListView
+from django.views.generic import ListView, DetailView
 from typing import Any
 
 PER_PAGE = 9
@@ -181,30 +181,23 @@ def search(request):
         }
     )
 
+class PageDetailView(DetailView):
+    model = Page
+    template_name = 'blog/pages/page.html'
+    slug_field = 'slug'
+    context_object_name = 'page'
 
-
-def page(request, slug):
-    page_obj = (
-        Page.objects
-        .filter(is_published=True)
-        .filter(slug=slug)
-        .first()
-    )
-
-    if page_obj is None:
-        raise Http404()
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        ctx = super().get_context_data(**kwargs)
+        page = self.get_object()
+        page_title = f'Página: {page.title} - ' # type: ignore
+        ctx.update({
+            'page_title': page_title,
+        })
+        return ctx
     
-    page_title = f'Página: {page_obj.title} - '
-
-
-    return render(
-        request,
-        'blog/pages/page.html',
-        {
-            'page': page_obj,
-            'page_title': page_title,            
-        }
-    )
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().filter(is_published = True)
 
 
 def post(request, slug):
